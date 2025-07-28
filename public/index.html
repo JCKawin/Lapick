@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Scraper</title>
+    <style>
+        body { font-family: sans-serif; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        textarea { width: 100%; height: 300px; }
+        .hidden { display: none; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Web Scraper</h1>
+
+        <h2>Scrape a Single URL</h2>
+        <form id="scrape-form">
+            <input type="text" id="url" placeholder="Enter URL" size="50">
+            <button type="submit">Scrape</button>
+        </form>
+        <div id="single-result" class="hidden">
+            <h3>Scraped Markdown</h3>
+            <textarea id="markdown-output" readonly></textarea>
+            <p id="single-error" class="error"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('scrape-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('url').value;
+            const markdownOutput = document.getElementById('markdown-output');
+            const errorOutput = document.getElementById('single-error');
+            
+            markdownOutput.value = '';
+            errorOutput.textContent = '';
+
+            const response = await fetch('/api/scrape-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                markdownOutput.value = result.markdown;
+            } else {
+                errorOutput.textContent = result.error;
+            }
+            document.getElementById('single-result').classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
