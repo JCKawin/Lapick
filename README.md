@@ -1,7 +1,7 @@
 ![](banner.png)
 
 
-# 💻 Lapick
+#  L<i>**a**</i>P<i>**i**</i>CK
 
 ## 🚀 The Ultimate AI Laptop Guru: Lapick 🤖✨
 
