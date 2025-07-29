@@ -18,7 +18,7 @@ const initialImages = [
     "/marquee/OIP_3.webp",
     "/marquee/OIP.jpg",
     "/marquee/pexels.png",
-    "/marquee/prepare for trouble and make it ....png",
+    "/marquee/prepare for trouble and make it double png",
     "/marquee/purple.png",
     "/marquee/razor.png",
     "/marquee/sony.png",
