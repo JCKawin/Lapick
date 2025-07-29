@@ -79,3 +79,59 @@ A fine-tuned Large Language Model (LLM) for laptop recommendation is an advanced
    - The model can be further fine-tuned with new data, user feedback, and evolving laptop trends, making its recommendations smarter over time.
 
 By leveraging a fine-tuned LLM, Lapick delivers highly accurate, context-aware, and user-friendly laptop recommendations, making the selection process fast, transparent, and tailored to each individual. 💡💻
+
+
+# 🛒 Industry-Standard Amazon Scraper for the Best Deals
+
+Lapick doesn't just stop at recommending the perfect laptop combination for your needs — it goes a step further by integrating an industry-level Amazon scraper. This powerful tool is designed to fetch the best real-time deals for your recommended laptop, ensuring you get the most value for your money. 🔍💸
+
+## 🏆 What Makes Our Amazon Scraper Special?
+
+- **Stealthy & Reliable:** Built with Puppeteer and advanced stealth plugins, our scraper mimics real user behavior, bypasses anti-bot protections, and fetches accurate, up-to-date listings and prices directly from Amazon.
+- **Smart User-Agent Rotation:** Randomizes user agents and simulates mouse movements to avoid detection, ensuring robust and continuous operation.
+- **Detailed Data Extraction:** Gathers product prices, images, specifications, and more, so you get a complete picture of every deal.
+- **Proxy Support:** Optionally routes traffic through Tor for enhanced privacy and access.
+
+## � How It Works
+
+1. **Get Your Laptop Recommendation:**
+   - Use Lapick’s AI-powered interface to describe your needs and receive a personalized laptop recommendation.
+2. **Run the Amazon Scraper:**
+   - Feed the recommended laptop model or URL into the Amazon scraper.
+   - The scraper will search Amazon, extract the latest prices, product details, and images, and present you with the best available deals.
+3. **Review & Buy:**
+   - Instantly see the most competitive offers and make your purchase with confidence!
+
+## 🛠️ How to Use the Amazon Scraper
+
+**Requirements:**
+- Node.js (v16 or higher recommended)
+- Python (if using additional scripts)
+- A stable internet connection
+- (Optional) Tor installed and running for proxy support
+
+**Installation:**
+1. Open a terminal in the project root directory.
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. (Optional) If you want to use Tor proxy, ensure Tor is running on your system.
+
+**Running the Scraper:**
+1. Navigate to the Amazon scraper directory:
+   ```sh
+   cd amazon
+   ```
+2. Edit `amazon-scraper.js` if you want to change the target laptop URL or enable proxy support (set `USE_PROXY = true`).
+3. Run the scraper:
+   ```sh
+   node amazon-scraper.js
+   ```
+4. The scraper will launch, fetch the latest details and prices for the specified laptop, and print the results in your terminal.
+
+**Tips:**
+- You can modify the script to scrape multiple laptops or automate the process for a list of recommendations.
+- For best results, always use the latest version of Node.js and keep dependencies updated.
+
+With Lapick’s Amazon scraper, you move seamlessly from getting the perfect laptop recommendation to securing the best deal — all in one intelligent workflow! 🛒🤖💰
