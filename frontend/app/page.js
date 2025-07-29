@@ -72,7 +72,7 @@ export default function Home() {
 
   if (status) {
     if (status.value === "pro") {
-      return <Pro />;
+      return <Newbie />;
     }
     else {
       return <Newbie />;

@@ -47,8 +47,8 @@ const LaptopRecommendationSchema = z.object({
 // Initialize OpenAI client
 const openai = new OpenAI({
     baseURL: "https://api.groq.com/openai/v1",
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, // Make sure to set this in your .env file
-  dangerouslyAllowBrowser: true // Only for client-side usage in development
+    apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY || "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", // Use fallback if not available
+    dangerouslyAllowBrowser: true // Only for client-side usage in development
 });
 
 // Initialize Instructor
