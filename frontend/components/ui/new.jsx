@@ -14,6 +14,9 @@ import Instructor from "@instructor-ai/instructor";
 import OpenAI from "openai";
 import { z } from "zod";
 
+// Import Shadcn UI Card components
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+
 // Define the Zod schema for laptop recommendations
 const LaptopRecommendationSchema = z.object({
   cpu: z.object({
@@ -132,7 +135,6 @@ export default function Newbie() {
     setIsGeneratingRecommendation(true);
     
     try {
-      // Prepare the game data for the AI
       const gameNames = selectedGameData.map(game => game.name);
       const gameRequirements = selectedGameData.map(game => `${game.name}: ${game.requirement}`);
       
@@ -141,20 +143,15 @@ export default function Newbie() {
       
       const prompt = `
         Based on the following selected games and their requirements, recommend optimal laptop specifications for gaming:
-        
         Selected Games: ${gameNames.join(', ')}
-        
         Game Requirements:
         ${gameRequirements.join('\n')}
-        
         Please provide detailed laptop specifications that can handle all these games comfortably.
         Consider that this is for a laptop, so focus on mobile processors and GPUs. 
         Ensure the recommendations can handle all selected games with good performance and some future-proofing.
       `;
 
       console.log("📝 Sending prompt to OpenAI...");
-      console.log("Prompt:", prompt);
-
       const recommendation = await client.chat.completions.create({
         model: "gemma2-9b-it",
         messages: [
@@ -176,53 +173,19 @@ export default function Newbie() {
       });
 
       console.log("✅ Received recommendation from AI:");
-      console.log("Raw response:", recommendation);
-      console.log("CPU:", recommendation.cpu);
-      console.log("RAM:", recommendation.ram);
-      console.log("Storage:", recommendation.storage);
-      console.log("GPU:", recommendation.gpu);
-      console.log("Explanation:", recommendation.explanation);
-      console.log("Price Range:", recommendation.estimated_price_range);
-
       setLaptopRecommendation(recommendation);
       console.log("💾 Recommendation saved to state");
       
     } catch (error) {
       console.error("❌ Error generating laptop recommendation:", error);
-      console.error("Error details:", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      
-      // Set a fallback recommendation
       const fallbackRecommendation = {
-        cpu: {
-          model: "AMD Ryzen 7 5800H",
-          generation: "5th Gen",
-          cores: 8,
-          base_clock: "3.2 GHz"
-        },
-        ram: {
-          capacity: "16GB",
-          type: "DDR4",
-          speed: "3200MHz"
-        },
-        storage: {
-          type: "NVMe SSD",
-          capacity: "1TB",
-          interface: "PCIe 3.0"
-        },
-        gpu: {
-          model: "RTX 3060",
-          vram: "6GB",
-          performance_tier: "Mid-range"
-        },
-        explanation: "Error occurred while generating AI recommendation. This is a general recommendation for gaming laptops that should handle most modern games at 1080p with good performance. The Ryzen 7 5800H provides excellent multi-core performance, 16GB RAM ensures smooth multitasking, and the RTX 3060 can run most games at high settings.",
+        cpu: { model: "AMD Ryzen 7 5800H", generation: "5th Gen", cores: 8, base_clock: "3.2 GHz" },
+        ram: { capacity: "16GB", type: "DDR4", speed: "3200MHz" },
+        storage: { type: "NVMe SSD", capacity: "1TB", interface: "PCIe 3.0" },
+        gpu: { model: "RTX 3060", vram: "6GB", performance_tier: "Mid-range" },
+        explanation: "Error occurred while generating AI recommendation. This is a general recommendation...",
         estimated_price_range: "$1000 - $1500"
       };
-      
-      console.log("🔄 Using fallback recommendation:", fallbackRecommendation);
       setLaptopRecommendation(fallbackRecommendation);
     } finally {
       setIsGeneratingRecommendation(false);
@@ -243,34 +206,26 @@ export default function Newbie() {
   const handleGameSelectionNext = async () => {
     setShowGameSelection(false);
     setLoading(true);
-    setCurrentStep(0);
     
-    // Generate laptop recommendation when starting the loading process
+    setCurrentStep(0);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    setCurrentStep(1);
     await generateLaptopRecommendation();
-  };
+    
+    setCurrentStep(2);
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-  const handleNextStep = () => {
-    if (currentStep < loadingStates.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // If we've reached the last step, we can either reset or stop
-      setLoading(false);
-      setCurrentStep(0);
-    }
-  };
-
-  const handlePreviousStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    } else {
-      // Go back to game selection
-      setLoading(false);
-      setShowGameSelection(true);
-    }
+    setCurrentStep(3);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setLoading(false);
+    setCurrentStep(0);
   };
 
   const handleStart = () => {
     setShowGameSelection(true);
+    setLaptopRecommendation(null);
   };
 
   const handleStop = () => {
@@ -281,14 +236,13 @@ export default function Newbie() {
     setSelectedGameData([]);
     setLaptopRecommendation(null);
   };
-
+  
   const handleGameSelectionBack = () => {
     setShowGameSelection(false);
     setSelectedGames([]);
     setSelectedGameData([]);
   };
 
-  // Show game selection screen
   if (showGameSelection) {
     return (
       <GameSelection 
@@ -301,8 +255,7 @@ export default function Newbie() {
     );
   }
 
-  // Show laptop recommendation when loading is complete
-  if (!loading && laptopRecommendation && currentStep === 0) {
+  if (!loading && laptopRecommendation) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 p-6">
         <div className="max-w-4xl mx-auto">
@@ -310,66 +263,70 @@ export default function Newbie() {
             Your Personalized Laptop Recommendation
           </h2>
           
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Recommended Specifications</h3>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* CPU */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Processor (CPU)</h4>
-                <p className="text-lg font-medium">{laptopRecommendation.cpu.model}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{laptopRecommendation.cpu.cores} cores • {laptopRecommendation.cpu.base_clock}</p>
-              </div>
-              
-              {/* RAM */}
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">Memory (RAM)</h4>
-                <p className="text-lg font-medium">{laptopRecommendation.ram.capacity} {laptopRecommendation.ram.type}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{laptopRecommendation.ram.speed}</p>
-              </div>
-              
-              {/* Storage */}
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Storage</h4>
-                <p className="text-lg font-medium">{laptopRecommendation.storage.capacity} {laptopRecommendation.storage.type}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{laptopRecommendation.storage.interface}</p>
-              </div>
-              
-              {/* GPU */}
-              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-red-800 dark:text-red-200 mb-2">Graphics (GPU)</h4>
-                <p className="text-lg font-medium">{laptopRecommendation.gpu.model}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{laptopRecommendation.gpu.vram} • {laptopRecommendation.gpu.performance_tier}</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Explanation */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Why These Specs?</h3>
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{laptopRecommendation.explanation}</p>
-          </div>
-          
-          {/* Price Range */}
-          <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl shadow-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-2">Estimated Price Range</h3>
-            <p className="text-2xl font-bold">{laptopRecommendation.estimated_price_range}</p>
-          </div>
-          
-          {/* Selected Games */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Your Selected Games</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {selectedGameData.map((game, index) => (
-                <div key={index} className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                  <p className="font-medium text-sm">{game.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{game.requirement}</p>
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Recommended Specifications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Processor (CPU)</h4>
+                  <p className="text-lg font-medium">{laptopRecommendation.cpu.model}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{laptopRecommendation.cpu.cores} cores • {laptopRecommendation.cpu.base_clock}</p>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">Memory (RAM)</h4>
+                  <p className="text-lg font-medium">{laptopRecommendation.ram.capacity} {laptopRecommendation.ram.type}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{laptopRecommendation.ram.speed}</p>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">Storage</h4>
+                  <p className="text-lg font-medium">{laptopRecommendation.storage.capacity} {laptopRecommendation.storage.type}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{laptopRecommendation.storage.interface}</p>
+                </div>
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                  <h4 className="font-semibold text-red-800 dark:text-red-200 mb-2">Graphics (GPU)</h4>
+                  <p className="text-lg font-medium">{laptopRecommendation.gpu.model}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{laptopRecommendation.gpu.vram} • {laptopRecommendation.gpu.performance_tier}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           
-          {/* Action Buttons */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Why These Specs?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{laptopRecommendation.explanation}</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="mb-6 bg-gradient-to-r from-green-500 to-blue-500 text-white">
+            <CardHeader>
+              <CardTitle>Estimated Price Range</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{laptopRecommendation.estimated_price_range}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Selected Games</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {selectedGameData.map((game, index) => (
+                  <div key={index} className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                    <p className="font-medium text-sm">{game.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{game.requirement}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
           <div className="flex justify-center gap-4 mt-8">
             <Button variant="outline" onClick={handleStart}>
               Start Over
@@ -390,7 +347,6 @@ export default function Newbie() {
           Let's start
         </h2>
         
-        {/* Core Loader Modal */}
         <Loader 
           loadingStates={loadingStates} 
           loading={loading} 
@@ -398,33 +354,12 @@ export default function Newbie() {
           currentStep={currentStep}
         />
         
-        {/* Start button */}
         {!loading && !laptopRecommendation && (
           <Button onClick={handleStart}>
             Click to start
           </Button>
         )}
         
-        {/* Navigation buttons */}
-        {loading && (
-          <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-[120] flex gap-3">
-            <Button 
-              variant="outline"
-              onClick={handlePreviousStep}
-              className="flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back
-            </Button>
-            <Button onClick={handleNextStep}>
-              {currentStep < loadingStates.length - 1 ? "Next Step" : "View Results"}
-            </Button>
-          </div>
-        )}
-        
-        {/* Close button */}
         {loading && (
           <button
             className="fixed top-4 right-4 text-black dark:text-white z-[120]"

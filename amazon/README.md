@@ -39,7 +39,7 @@ Scrapes a single Amazon product page for details.
   {
     "success": true,
     "data": {
-      "prices": ["..."],
+      "price": "...",
       "images": [{"src": "...", "alt": "..."}],
       "details": [{"key": "...", "value": "..."}]
     }

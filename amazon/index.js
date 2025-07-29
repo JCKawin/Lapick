@@ -314,8 +314,8 @@ app.post('/api/scrape/product', async (req, res) => {
     }
 
     try {
-        const data = await scrapeAmazonProduct(url);
-        res.json({ success: true, data });
+        const { price, images, details } = await scrapeAmazonProduct(url);
+        res.json({ success: true, data: { price, images, details } });
     } catch (error) {
         res.status(500).json({ success: false, message: `Failed to scrape product: ${error.message}` });
     }
