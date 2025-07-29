@@ -38,8 +38,32 @@ const initialImages = [
     "/marquee/uwu.png"
 ];
 
+// Helper function to shuffle an array using the Fisher-Yates algorithm
+const shuffleArray = (array) => {
+  let currentIndex = array.length,
+    randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex !== 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
+
+  return array;
+};
+
+
 export default function Home() {
-  const [images, setImages] = React.useState(initialImages);
+  // Use the lazy initializer form of useState to shuffle the array on component mount.
+  // We create a copy of initialImages (...) to avoid mutating the original array.
+  const [images, setImages] = React.useState(() => shuffleArray([...initialImages]));
   const [status, setStatus] = React.useState(null);
 
   const handleStatusChange = (newStatus) => {
