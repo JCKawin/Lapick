@@ -35,8 +35,7 @@ const initialImages = [
     "/marquee/black.png",
     "/marquee/asussy.png",
     "/marquee/alienware.png",
-    "/marquee/acer aspect.png",
-
+    "/marquee/acer aspect.png"
 ];
 
 export default function Home() {
