@@ -291,214 +291,289 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔍 Amazon Filter Controller</h1>
-            <p>Initialize browser, scrape filters, and click on filter options</p>
+            <h1>📦 Amazon Scraper & Filter Controller</h1>
+            <p>Scrape product data or control search filters in a live browser session</p>
         </div>
 
-        <div class="controls">
-            <div class="input-group">
-                <input type="text" id="searchQuery" placeholder="Enter search query (e.g., laptop, phone, headphones)" value="laptop">
-                <button class="btn btn-primary" onclick="initializeBrowser()">Initialize Browser</button>
-                <button class="btn btn-secondary" onclick="loadFilters()">Refresh Filters</button>
-                <button class="btn btn-danger" onclick="closeBrowser()">Close Browser</button>
-            </div>
-            <div id="status" class="status" style="display: none;"></div>
+        <div class="tabs">
+            <button class="tab-link active" onclick="openTab(event, 'scraperTab')">📦 Product Scraper</button>
+            <button class="tab-link" onclick="openTab(event, 'filterTab')">🔍 Filter Controller</button>
         </div>
 
-        <div class="filters-container">
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p>Loading filters...</p>
+        <!-- Product Scraper Tab -->
+        <div id="scraperTab" class="tab-content" style="display: block;">
+            <div class="controls">
+                <div class="input-group">
+                    <input type="text" id="productUrl" placeholder="Enter Amazon product URL" value="https://www.amazon.in/ASUS-Vivobook-Windows-Backlit-E1504FA-LK321WS/dp/B0BTWCYPGV">
+                    <button class="btn btn-primary" onclick="scrapeProduct()">Scrape Product</button>
+                </div>
+                <div id="scraperStatus" class="status" style="display: none;"></div>
+            </div>
+            <div class="results-container">
+                <div id="scraperLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Scraping product data...</p>
+                </div>
+                <div id="scraperEmptyState" class="empty-state">
+                    <h3>🚀 Ready to Scrape</h3>
+                    <p>Enter a product URL and click "Scrape Product" to begin.</p>
+                </div>
+                <div id="scraperResults" style="display: none;">
+                    <!-- Scraped data will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Controller Tab -->
+        <div id="filterTab" class="tab-content">
+            <div class="controls">
+                <div class="input-group">
+                    <input type="text" id="searchQuery" placeholder="Enter search query (e.g., laptop, phone)" value="laptop">
+                    <button class="btn btn-primary" onclick="initializeBrowser()">Initialize Browser</button>
+                    <button class="btn btn-secondary" onclick="loadFilters()">Refresh Filters</button>
+                    <button class="btn btn-danger" onclick="closeBrowser()">Close Browser</button>
+                </div>
+                <div id="filterStatus" class="status" style="display: none;"></div>
             </div>
 
-            <div id="emptyState" class="empty-state">
-                <h3>🚀 Ready to Start</h3>
-                <p>Initialize the browser first to load available filters</p>
+            <div class="filters-container">
+                <div id="filterLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading filters...</p>
+                </div>
+                <div id="filterEmptyState" class="empty-state">
+                    <h3>🚀 Ready to Start</h3>
+                    <p>Initialize the browser first to load available filters</p>
+                </div>
+                <div id="filtersContent" style="display: none;"></div>
             </div>
-
-            <div id="filtersContent" style="display: none;"></div>
         </div>
     </div>
 
     <script>
         let currentFilters = [];
 
-        function showStatus(message, type) {
-            const statusEl = document.getElementById('status');
+        // --- Tabbed Interface ---
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            const tablinks = document.getElementsByClassName("tab-link");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        // --- Status & Loading Indicators ---
+        function showStatus(elementId, message, type) {
+            const statusEl = document.getElementById(elementId);
             statusEl.textContent = message;
             statusEl.className = `status ${type}`;
             statusEl.style.display = 'block';
-            
-            setTimeout(() => {
-                statusEl.style.display = 'none';
-            }, 5000);
+            setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
         }
 
-        function showLoading() {
-            document.getElementById('loading').classList.add('show');
-            document.getElementById('emptyState').style.display = 'none';
-            document.getElementById('filtersContent').style.display = 'none';
+        function showLoading(elementId) {
+            document.getElementById(elementId).classList.add('show');
         }
 
-        function hideLoading() {
-            document.getElementById('loading').classList.remove('show');
+        function hideLoading(elementId) {
+            document.getElementById(elementId).classList.remove('show');
         }
 
-        async function initializeBrowser() {
-            const searchQuery = document.getElementById('searchQuery').value;
-            showLoading();
-            showStatus('Initializing browser...', 'info');
+        // --- Product Scraper Functions ---
+        async function scrapeProduct() {
+            const url = document.getElementById('productUrl').value;
+            if (!url) {
+                showStatus('scraperStatus', 'Please enter a product URL.', 'error');
+                return;
+            }
+
+            showLoading('scraperLoading');
+            document.getElementById('scraperEmptyState').style.display = 'none';
+            document.getElementById('scraperResults').style.display = 'none';
+            showStatus('scraperStatus', 'Scraping product data...', 'info');
 
             try {
-                const response = await fetch('/api/initialize', {
+                const response = await fetch('/api/scrape/product', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('scraperStatus', 'Scraping successful!', 'success');
+                    displayScrapedData(data.data);
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                showStatus('scraperStatus', `Error: ${error.message}`, 'error');
+                document.getElementById('scraperEmptyState').style.display = 'block';
+            } finally {
+                hideLoading('scraperLoading');
+            }
+        }
+
+        function displayScrapedData(data) {
+            const resultsEl = document.getElementById('scraperResults');
+            let html = '<h2>Scraped Results</h2>';
+
+            // Price
+            if (data.price) {
+                html += '<h3>Price</h3><div class="result-section">';
+                html += `<div class="result-item price-item">₹${data.price}</div>`;
+                html += '</div>';
+            }
+
+            // Images
+            if (data.images && data.images.length > 0) {
+                html += '<h3>Images</h3><div class="result-section image-grid">';
+                data.images.forEach(img => {
+                    html += `<div class="result-item"><img src="${img.src}" alt="${img.alt}" title="${img.alt}"></div>`;
+                });
+                html += '</div>';
+            }
+
+            // Product Details
+            if (data.details && data.details.length > 0) {
+                html += '<h3>Product Details</h3><div class="result-section details-grid">';
+                data.details.forEach(detail => {
+                    html += `<div class="result-item detail-item"><strong>${detail.key}:</strong> ${detail.value}</div>`;
+                });
+                html += '</div>';
+            }
+
+            resultsEl.innerHTML = html;
+            resultsEl.style.display = 'block';
+        }
+
+
+        // --- Filter Controller Functions ---
+        async function initializeBrowser() {
+            const searchQuery = document.getElementById('searchQuery').value;
+            showLoading('filterLoading');
+            document.getElementById('filterEmptyState').style.display = 'none';
+            showStatus('filterStatus', 'Initializing browser...', 'info');
+
+            try {
+                const response = await fetch('/api/search/initialize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ searchQuery })
                 });
-
                 const data = await response.json();
-                
                 if (data.success) {
-                    showStatus('Browser initialized! Loading filters...', 'success');
+                    showStatus('filterStatus', 'Browser initialized! Loading filters...', 'success');
                     await loadFilters();
                 } else {
                     throw new Error(data.message);
                 }
             } catch (error) {
-                showStatus(`Error: ${error.message}`, 'error');
+                showStatus('filterStatus', `Error: ${error.message}`, 'error');
             } finally {
-                hideLoading();
+                hideLoading('filterLoading');
             }
         }
 
         async function loadFilters() {
-            showLoading();
-            showStatus('Loading available filters...', 'info');
+            showLoading('filterLoading');
+            showStatus('filterStatus', 'Loading available filters...', 'info');
 
             try {
-                const response = await fetch('/api/filters');
+                const response = await fetch('/api/search/filters');
                 const data = await response.json();
-
                 if (data.success) {
                     currentFilters = data.filters;
                     displayFilters(data.filters);
-                    showStatus(`Loaded ${data.filters.length} filter categories`, 'success');
+                    showStatus('filterStatus', `Loaded ${data.filters.length} filter categories`, 'success');
                 } else {
                     throw new Error(data.message);
                 }
             } catch (error) {
-                showStatus(`Error: ${error.message}`, 'error');
-                document.getElementById('emptyState').style.display = 'block';
+                showStatus('filterStatus', `Error: ${error.message}`, 'error');
+                document.getElementById('filterEmptyState').style.display = 'block';
             } finally {
-                hideLoading();
+                hideLoading('filterLoading');
             }
         }
 
         function displayFilters(filters) {
             const filtersContent = document.getElementById('filtersContent');
-            
             if (filters.length === 0) {
-                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('filterEmptyState').style.display = 'block';
                 filtersContent.style.display = 'none';
                 return;
             }
-
-            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('filterEmptyState').style.display = 'none';
             filtersContent.style.display = 'block';
-
             let html = '';
-            filters.forEach((filter, filterIndex) => {
+            filters.forEach((filter) => {
                 html += `
                     <div class="filter-category">
-                        <div class="filter-header">
-                            <h3>${filter.categoryName}</h3>
-                            <div class="filter-info">
-                                ID: ${filter.divId} • ${filter.optionCount} options
-                            </div>
-                        </div>
+                        <div class="filter-header"><h3>${filter.categoryName}</h3></div>
                         <div class="filter-options">
                 `;
-
                 filter.options.forEach((option, optionIndex) => {
-                    const isSelected = option.isChecked ? 'selected' : '';
                     html += `
-                        <div class="filter-option ${isSelected}" 
+                        <div class="filter-option ${option.isChecked ? 'selected' : ''}" 
                              onclick="clickFilterOption('${filter.divId}', ${optionIndex})">
                             <span class="filter-option-text">${option.text}</span>
-                            <span class="filter-option-badge">${option.isChecked ? 'Selected' : 'Click to select'}</span>
+                            <span class="filter-option-badge">${option.isChecked ? 'Selected' : 'Select'}</span>
                         </div>
                     `;
                 });
-
-                html += `
-                        </div>
-                    </div>
-                `;
+                html += `</div></div>`;
             });
-
             filtersContent.innerHTML = html;
         }
 
         async function clickFilterOption(filterId, optionIndex) {
             const filter = currentFilters.find(f => f.divId === filterId);
             const option = filter?.options[optionIndex];
-            
             if (!option) return;
-
-            showStatus(`Clicking filter: ${filter.categoryName} - ${option.text}`, 'info');
+            showStatus('filterStatus', `Clicking: ${option.text}`, 'info');
 
             try {
-                const response = await fetch('/api/click-filter', {
+                const response = await fetch('/api/search/click-filter', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ filterId, optionIndex })
                 });
-
                 const data = await response.json();
-
                 if (data.success) {
-                    showStatus('Filter clicked successfully! Updating display...', 'success');
+                    showStatus('filterStatus', 'Filter updated!', 'success');
                     currentFilters = data.filters;
                     displayFilters(data.filters);
                 } else {
                     throw new Error(data.message);
                 }
             } catch (error) {
-                showStatus(`Error clicking filter: ${error.message}`, 'error');
+                showStatus('filterStatus', `Error: ${error.message}`, 'error');
             }
         }
 
         async function closeBrowser() {
-            showStatus('Closing browser...', 'info');
-
+            showStatus('filterStatus', 'Closing browser...', 'info');
             try {
-                const response = await fetch('/api/close', {
-                    method: 'POST'
-                });
-
+                const response = await fetch('/api/search/close', { method: 'POST' });
                 const data = await response.json();
-
                 if (data.success) {
-                    showStatus('Browser closed successfully', 'success');
+                    showStatus('filterStatus', 'Browser closed', 'success');
                     currentFilters = [];
                     document.getElementById('filtersContent').style.display = 'none';
-                    document.getElementById('emptyState').style.display = 'block';
+                    document.getElementById('filterEmptyState').style.display = 'block';
                 } else {
                     throw new Error(data.message);
                 }
             } catch (error) {
-                showStatus(`Error: ${error.message}`, 'error');
+                showStatus('filterStatus', `Error: ${error.message}`, 'error');
             }
         }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Amazon Filter Controller loaded');
-        });
     </script>
 </body>
 </html>
