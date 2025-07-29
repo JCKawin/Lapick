@@ -23,24 +23,16 @@ import {
 
 const statuses = [
   {
-    value: "backlog",
-    label: "Backlog",
+    value: "new",
+    label: "Newbie",
   },
   {
-    value: "todo",
-    label: "Todo",
+    value: "int",
+    label: "Intermediate",
   },
   {
-    value: "in progress",
-    label: "In Progress",
-  },
-  {
-    value: "done",
-    label: "Done",
-  },
-  {
-    value: "canceled",
-    label: "Canceled",
+    value: "pro",
+    label: "Professional",
   },
 ]
 
