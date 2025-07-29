@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Filter Controller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(149, 165, 166, 0.3);
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status.success {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+        }
+
+        .status.error {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .status.info {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+        }
+
+        .filters-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-category {
+            margin-bottom: 30px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .filter-category:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .filter-header h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .filter-info {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .filter-options {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-option:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .filter-option.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .filter-option-text {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .filter-option-badge {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .filter-option.selected .filter-option-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+
+        /* Scrollbar styling */
+        .filter-options::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .filter-options::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .filter-options::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .filter-options::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Amazon Filter Controller</h1>
+            <p>Initialize browser, scrape filters, and click on filter options</p>
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="searchQuery" placeholder="Enter search query (e.g., laptop, phone, headphones)" value="laptop">
+                <button class="btn btn-primary" onclick="initializeBrowser()">Initialize Browser</button>
+                <button class="btn btn-secondary" onclick="loadFilters()">Refresh Filters</button>
+                <button class="btn btn-danger" onclick="closeBrowser()">Close Browser</button>
+            </div>
+            <div id="status" class="status" style="display: none;"></div>
+        </div>
+
+        <div class="filters-container">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading filters...</p>
+            </div>
+
+            <div id="emptyState" class="empty-state">
+                <h3>🚀 Ready to Start</h3>
+                <p>Initialize the browser first to load available filters</p>
+            </div>
+
+            <div id="filtersContent" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilters = [];
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('filtersContent').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+
+        async function initializeBrowser() {
+            const searchQuery = document.getElementById('searchQuery').value;
+            showLoading();
+            showStatus('Initializing browser...', 'info');
+
+            try {
+                const response = await fetch('/api/initialize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ searchQuery })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('Browser initialized! Loading filters...', 'success');
+                    await loadFilters();
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadFilters() {
+            showLoading();
+            showStatus('Loading available filters...', 'info');
+
+            try {
+                const response = await fetch('/api/filters');
+                const data = await response.json();
+
+                if (data.success) {
+                    currentFilters = data.filters;
+                    displayFilters(data.filters);
+                    showStatus(`Loaded ${data.filters.length} filter categories`, 'success');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+                document.getElementById('emptyState').style.display = 'block';
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displayFilters(filters) {
+            const filtersContent = document.getElementById('filtersContent');
+            
+            if (filters.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                filtersContent.style.display = 'none';
+                return;
+            }
+
+            document.getElementById('emptyState').style.display = 'none';
+            filtersContent.style.display = 'block';
+
+            let html = '';
+            filters.forEach((filter, filterIndex) => {
+                html += `
+                    <div class="filter-category">
+                        <div class="filter-header">
+                            <h3>${filter.categoryName}</h3>
+                            <div class="filter-info">
+                                ID: ${filter.divId} • ${filter.optionCount} options
+                            </div>
+                        </div>
+                        <div class="filter-options">
+                `;
+
+                filter.options.forEach((option, optionIndex) => {
+                    const isSelected = option.isChecked ? 'selected' : '';
+                    html += `
+                        <div class="filter-option ${isSelected}" 
+                             onclick="clickFilterOption('${filter.divId}', ${optionIndex})">
+                            <span class="filter-option-text">${option.text}</span>
+                            <span class="filter-option-badge">${option.isChecked ? 'Selected' : 'Click to select'}</span>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            filtersContent.innerHTML = html;
+        }
+
+        async function clickFilterOption(filterId, optionIndex) {
+            const filter = currentFilters.find(f => f.divId === filterId);
+            const option = filter?.options[optionIndex];
+            
+            if (!option) return;
+
+            showStatus(`Clicking filter: ${filter.categoryName} - ${option.text}`, 'info');
+
+            try {
+                const response = await fetch('/api/click-filter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filterId, optionIndex })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('Filter clicked successfully! Updating display...', 'success');
+                    currentFilters = data.filters;
+                    displayFilters(data.filters);
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                showStatus(`Error clicking filter: ${error.message}`, 'error');
+            }
+        }
+
+        async function closeBrowser() {
+            showStatus('Closing browser...', 'info');
+
+            try {
+                const response = await fetch('/api/close', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('Browser closed successfully', 'success');
+                    currentFilters = [];
+                    document.getElementById('filtersContent').style.display = 'none';
+                    document.getElementById('emptyState').style.display = 'block';
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Amazon Filter Controller loaded');
+        });
+    </script>
+</body>
+</html>

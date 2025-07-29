@@ -60,7 +60,7 @@ export function ComboBoxResponsive({ onStatusChange }) {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="w-[150px] justify-start backdrop-blur-3xl">
-            {selectedStatus ? <>{selectedStatus.label}</> : <>+ Set status</>}
+            {selectedStatus ? <>{selectedStatus.label}</> : <> -{'>'} Get started</>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0" align="center">
@@ -74,7 +74,7 @@ export function ComboBoxResponsive({ onStatusChange }) {
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button variant="outline" className="w-[150px] justify-start">
-          {selectedStatus ? <>{selectedStatus.label}</> : <>+ Set status</>}
+          {selectedStatus ? <>{selectedStatus.label}</> : <> -{'>'} Get started</>}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
@@ -92,7 +92,7 @@ function StatusList({
 }) {
   return (
     <Command>
-      <CommandInput placeholder="Filter status..." />
+      <CommandInput placeholder="choose difficulty..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup>
