@@ -1,7 +1,5 @@
 "use client"
-
 import * as React from "react"
-
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Button } from "@/components/ui/button"
 import {
@@ -46,22 +44,26 @@ const statuses = [
   },
 ]
 
-export function ComboBoxResponsive() {
+export function ComboBoxResponsive({ onStatusChange }) {
   const [open, setOpen] = React.useState(false)
   const isDesktop = useMediaQuery("(min-width: 768px)")
-  const [selectedStatus, setSelectedStatus] = React.useState<Status | null>(
-    null
-  )
+  const [selectedStatus, setSelectedStatus] = React.useState(null)
+
+  React.useEffect(() => {
+    if (onStatusChange) {
+      onStatusChange(selectedStatus);
+    }
+  }, [selectedStatus, onStatusChange]);
 
   if (isDesktop) {
     return (
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-[150px] justify-start">
+          <Button variant="outline" className="w-[150px] justify-start backdrop-blur-3xl">
             {selectedStatus ? <>{selectedStatus.label}</> : <>+ Set status</>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0" align="start">
+        <PopoverContent className="w-[200px] p-0" align="center">
           <StatusList setOpen={setOpen} setSelectedStatus={setSelectedStatus} />
         </PopoverContent>
       </Popover>
