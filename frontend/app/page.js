@@ -4,7 +4,7 @@ import { ComboBoxResponsive } from "@/components/ui/combobox";
 import React from "react";
 
 const initialImages = [
-    "/marquee/gamer-in-awe.webp",
+    "/marquee/acer aspect.png",
     "/marquee/ima2ge.png",
     "/marquee/imag3e.png",
     "/marquee/image.png",
