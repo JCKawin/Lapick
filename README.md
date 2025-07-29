@@ -7,6 +7,8 @@
 
 Welcome to Lapick — not just another laptop finder, but your personal AI-powered tech oracle. Lapick harnesses the power of next-generation artificial intelligence, blending the wisdom of a fine-tuned LLM with the relentless speed of real-time data scraping. Imagine an AI that not only understands your needs, but anticipates them, scours the digital universe for the latest laptops, and delivers recommendations with the precision of a seasoned expert. 🧠💡
 
+We have a very big project, a very powerful industry standard scrapper for amazon which is fine tuned to scrap laptops, docker searnxg for best searches, optimized frontend in Nextjs, using ai to optimize our results and scrapping
+
 Lapick’s AI doesn’t just process data — it thinks, reasons, and adapts. It learns from every user, every query, and every trend, evolving into the ultimate laptop matchmaker. Whether you’re a hardcore gamer 🎮, a creative professional 🎨, or a student on the go 🎒, Lapick’s AI integration ensures you get a laptop recommendation that feels almost telepathic. 🔮
 
 With Lapick, you’re not just searching — you’re experiencing the future of intelligent tech shopping, where artificial intelligence becomes your trusted companion in the quest for the perfect device. 🚀🛒
@@ -114,7 +116,8 @@ Lapick doesn't just stop at recommending the perfect laptop combination for your
 1. Open a terminal in the project root directory.
 2. Install dependencies:
    ```sh
-   npm install
+   cd frontend
+   npm i
    ```
 3. (Optional) If you want to use Tor proxy, ensure Tor is running on your system.
 
@@ -122,6 +125,7 @@ Lapick doesn't just stop at recommending the perfect laptop combination for your
 1. Navigate to the Amazon scraper directory:
    ```sh
    cd amazon
+   npm i
    ```
 2. Edit `amazon-scraper.js` if you want to change the target laptop URL or enable proxy support (set `USE_PROXY = true`).
 3. Run the scraper:
