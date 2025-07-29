@@ -1,10 +1,16 @@
 ![](banner.png)
 
 # Lapick
-A hackathon project. this will use fine tunned AI LLM systems to Get the prefect laptop deal for your specifications
+Lapick is an AI-powered laptop recommendation platform designed to simplify the process of finding the perfect laptop for your needs. It combines a fine-tuned large language model (LLM) with real-time data scraping and intelligent filtering to deliver highly relevant laptop suggestions. Here are some key features and details about the project:
 
-This projects is made by Gunit  , Aadi , JCKawin , Keerthik Ram .
+- **Conversational AI:** The system interacts with users in natural language, asking about their requirements such as budget, usage (gaming, programming, content creation, etc.), portability, and performance needs.
+- **Brand Filtering:** Only reputed brands are considered (ASUS, DELL, MSI, ACER, HP, LENOVO) to ensure quality and reliability.
+- **Real-Time Data:** The backend uses Node.js and Python scripts to scrape and process the latest laptop listings and specifications from trusted sources.
+- **Personalized Recommendations:** The LLM processes user input and tech stack to suggest laptops that best match the user's profile, making the search process fast and accurate.
+- **User-Friendly Interface:** Built with Next.js and React, the frontend provides an engaging and intuitive experience, including interactive UI elements and visual effects.
+- **For Everyone:** Whether you're a college student or a professional, Lapick helps you find a laptop tailored to your tech stack and preferences.
 
+This project was created as a hackathon entry by Gunit, Aadi, JCKawin, and Keerthik Ram, with the goal of making laptop selection smarter and more efficient.
 # Requirements
 
 A Computer With Operating System Installed And A Proper Internet Connection.<br>
@@ -36,4 +42,28 @@ College Students Or Even Profesionals Can use this to find the prefect laptop fo
 # How does it Works? (A Glimpse)
 
 It Asks you few questions on what do you use and what you are going to use . <br>
+
 Then process the given tech Stack and Gets you a prefect laptop craved and tuned just for you.
+
+# How Does a Fine-Tuned LLM for Laptop Recommendation Work?
+
+A fine-tuned Large Language Model (LLM) for laptop recommendation is an advanced AI system that has been specifically trained on a large dataset of laptop specifications, user preferences, reviews, and buying patterns. Here’s how it works in Lapick:
+
+1. **Understanding User Needs:**
+   - The LLM asks users about their requirements, such as budget, primary use cases (gaming, programming, content creation, etc.), preferred brands, portability, and any specific features they want.
+   - It interprets natural language input, so users can describe their needs in their own words.
+
+2. **Processing and Matching:**
+   - The model analyzes the user’s responses and extracts key requirements.
+   - It compares these needs against a database of laptops, which is kept up-to-date using real-time web scraping and data aggregation.
+   - The LLM uses its training to understand which laptop features best match different user profiles (e.g., a gamer needs a high-refresh-rate display and a powerful GPU, while a student may prioritize battery life and portability).
+
+3. **Personalized Recommendation:**
+   - The LLM ranks and filters laptops based on how well they fit the user’s criteria.
+   - It explains its recommendations, highlighting why certain models are a good fit.
+   - The system can also answer follow-up questions, refine suggestions, or adapt to new preferences in real time.
+
+4. **Continuous Improvement:**
+   - The model can be further fine-tuned with new data, user feedback, and evolving laptop trends, making its recommendations smarter over time.
+
+By leveraging a fine-tuned LLM, Lapick delivers highly accurate, context-aware, and user-friendly laptop recommendations, making the selection process fast, transparent, and tailored to each individual.
