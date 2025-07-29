@@ -1,9 +1,16 @@
 import sqlite3 as a
+import csv as c
 a1=a.connect("laptop.db")
 a2=a1.cursor()
 #a2.execute("create table data(serialno varchar(100) primary key,name varcahr(100),dispinch varcahr(100),panel varcahr(100),cpu varcahr(100),seriesno varcahr(100),ram varcahr(100),upram varcahr(100),battery varcahr(100),weight varcahr(100),igpu varcahr(100) default NULL,dgpu varcahr(100) default NULL,vram varcahr(100) );")
+#a2.execute("alter table data add price int")
+with open (".csv",'r')as c1:
+    r=c.reader(c1)
+    next(r)
+    for i in r:
+        a2.execute("insert into data values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",i)
 
-a2.execute("alter table data add booklkey bool")
+
 """
 a2.execute()
 a2.execute()
