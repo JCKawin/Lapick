@@ -29,6 +29,226 @@ const rotateTorIP = async (password = 'gunit') => {
   }
 };
 
+const getDesktopUserAgent = () => {
+  const desktopUserAgents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:119.0) Gecko/20100101 Firefox/119.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0'
+  ];
+  
+  return desktopUserAgents[Math.floor(Math.random() * desktopUserAgents.length)];
+};
+
+const performRandomMouseMovements = async (page) => {
+  console.log('🖱️ Performing random mouse movements...');
+  
+  const viewport = await page.viewport();
+  const movements = 5 + Math.floor(Math.random() * 5); // 5-10 movements
+  
+  for (let i = 0; i < movements; i++) {
+    const x = Math.floor(Math.random() * viewport.width);
+    const y = Math.floor(Math.random() * viewport.height);
+    
+    // Random movement with easing
+    await page.mouse.move(x, y, { steps: Math.floor(Math.random() * 10) + 5 });
+    
+    // Random delay between movements
+    await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 200));
+    
+    // Occasionally do a click (10% chance)
+    if (Math.random() < 0.1) {
+      await page.mouse.click(x, y);
+      await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 300));
+    }
+  }
+  
+  console.log(`✅ Completed ${movements} random mouse movements`);
+};
+
+const waitForAllSelectors = async (page) => {
+  console.log('⏳ Waiting for all selectors to load...');
+  
+  const selectors = [
+    'span.a-price-whole',
+    'img.a-dynamic-image',
+    '#landingImage',
+    '.a-color-secondary.a-size-base.prodDetSectionEntry',
+    '.a-size-base.prodDetAttrValue'
+  ];
+  
+  const selectorPromises = selectors.map(selector => 
+    page.waitForSelector(selector, { timeout: 10000 }).catch(() => {
+      console.log(`⚠️ Selector "${selector}" not found within timeout`);
+      return null;
+    })
+  );
+  
+  await Promise.allSettled(selectorPromises);
+  console.log('✅ Finished waiting for selectors');
+};
+
+const waitForProductAndLandingImages = async (page) => {
+  console.log('🖼️ Checking for product and landing images...');
+  
+  let attempts = 0;
+  const maxAttempts = 3;
+  
+  while (attempts < maxAttempts) {
+    attempts++;
+    console.log(`🔍 Attempt ${attempts} - Checking for images...`);
+    
+    const hasImages = await page.evaluate(() => {
+      const landingImage = document.querySelector('#landingImage');
+      const dynamicImages = document.querySelectorAll('img.a-dynamic-image');
+      return {
+        hasLanding: !!landingImage,
+        hasDynamic: dynamicImages.length > 0,
+        totalDynamic: dynamicImages.length
+      };
+    });
+    
+    console.log(`📊 Image status: Landing=${hasImages.hasLanding}, Dynamic=${hasImages.hasDynamic} (${hasImages.totalDynamic} found)`);
+    
+    if (hasImages.hasLanding || hasImages.hasDynamic) {
+      console.log('✅ Images found, proceeding...');
+      return true;
+    }
+    
+    console.log('⚠️ No images found, trying to expand product specifications...');
+    
+    try {
+      // Try to click the product specifications expander
+      const expanderClicked = await page.evaluate(() => {
+        const expander = document.querySelector('#productSpecifications-expander-link');
+        if (expander && expander.offsetParent !== null) { // Check if element is visible
+          expander.click();
+          return true;
+        }
+        return false;
+      });
+      
+      if (expanderClicked) {
+        console.log('✅ Clicked productSpecifications-expander-link');
+        
+        // Wait for content to load after clicking
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Perform mouse movements after expansion
+        await performRandomMouseMovements(page);
+        
+        // Wait a bit more for images to load
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else {
+        console.log('⚠️ productSpecifications-expander-link not found or not visible');
+        
+        // Try alternative expander selectors
+        const alternativeExpanderClicked = await page.evaluate(() => {
+          const selectors = [
+            'a[data-action="a-expander-toggle"][aria-label*="specification"]',
+            'a[data-action="a-expander-toggle"][aria-label*="Specification"]',
+            'a[href*="specification"]',
+            '.a-expander-header',
+            '[data-csa-c-element-id*="expander"]'
+          ];
+          
+          for (const selector of selectors) {
+            const element = document.querySelector(selector);
+            if (element && element.offsetParent !== null) {
+              element.click();
+              return { clicked: true, selector };
+            }
+          }
+          return { clicked: false, selector: null };
+        });
+        
+        if (alternativeExpanderClicked.clicked) {
+          console.log(`✅ Clicked alternative expander: ${alternativeExpanderClicked.selector}`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          await performRandomMouseMovements(page);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } else {
+          console.log('⚠️ No expander links found');
+        }
+      }
+      
+    } catch (expanderError) {
+      console.log('❌ Error clicking expander:', expanderError.message);
+    }
+    
+    // If this is not the last attempt, wait before trying again
+    if (attempts < maxAttempts) {
+      console.log(`⏳ Waiting 3 seconds before next attempt...`);
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+  }
+  
+  console.log('⚠️ Max attempts reached, proceeding with scraping anyway...');
+  return false;
+};
+
+const scrapeProductDetails = async (page) => {
+  return await page.evaluate(() => {
+    const detailEntries = document.querySelectorAll('.a-color-secondary.a-size-base.prodDetSectionEntry');
+    const detailValues = document.querySelectorAll('.a-size-base.prodDetAttrValue');
+    
+    const details = [];
+    
+    // Method 1: Using raw HTML - sequential matching
+    for (let i = 0; i < Math.max(detailEntries.length, detailValues.length); i++) {
+      const entry = detailEntries[i];
+      const value = detailValues[i];
+      
+      details.push({
+        entry: entry ? {
+          text: entry.textContent.trim(),
+          rawHTML: entry.outerHTML
+        } : null,
+        value: value ? {
+          text: value.textContent.trim(),
+          rawHTML: value.outerHTML
+        } : null
+      });
+    }
+    
+    // Method 2: Alternative approach - find pairs within common parent containers
+    const detailRows = document.querySelectorAll('tr, .a-row, [class*="detail"]');
+    const pairedDetails = [];
+    
+    detailRows.forEach((row, index) => {
+      const entry = row.querySelector('.a-color-secondary.a-size-base.prodDetSectionEntry');
+      const value = row.querySelector('.a-size-base.prodDetAttrValue');
+      
+      if (entry || value) {
+        pairedDetails.push({
+          rowIndex: index,
+          entry: entry ? {
+            text: entry.textContent.trim(),
+            rawHTML: entry.outerHTML
+          } : null,
+          value: value ? {
+            text: value.textContent.trim(),
+            rawHTML: value.outerHTML
+          } : null
+        });
+      }
+    });
+    
+    return {
+      method1_sequential: details,
+      method2_paired: pairedDetails,
+      totalEntries: detailEntries.length,
+      totalValues: detailValues.length
+    };
+  });
+};
+
 (async () => {
   // Only rotate Tor IP if proxy is enabled
   if (USE_PROXY) {
@@ -41,57 +261,77 @@ const rotateTorIP = async (password = 'gunit') => {
     : [];
   
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true, // Changed to headless
     args: launchArgs,
   });
   
   const page = await browser.newPage();
-  const ua = randomUseragent.getRandom();
+  
+  // Set viewport to 1920x1080
+  await page.setViewport({ width: 1920, height: 1080 });
+  
+  // Use only desktop user agents
+  const ua = getDesktopUserAgent();
   await page.setUserAgent(ua);
   console.log(`User-Agent: ${ua}`);
 
   try {
-    await page.goto('https://www.amazon.in/ASUS-Vivobook-Windows-Backlit-E1504FA-LK321WS/dp/B0BTWCYPGV?dib=eyJ2IjoiMSJ9.V17KBn8n9WX2PaKtK6AnfVy15iuOYpYt2GgsxDqM8nhMCn3HtERMdNtKtlzX8PidbxPFjVNs1F0RfULAk2bz3uC_eabBb_gx6O9LEJ6bY2FOeHezijIRrLGVWZBDx4fvuYfnxfxRSXkUdERLWdyWeqKI09T4AL1Dh7PesjROWjmWLKeOHA39kc_SlNlpsj2tBN5FPI6fJMWTd-Ia0XiyGjUmvONN5qtoX919x9sAWkh4faaQzdIbt0QcJu1GpNna0-GEU1DVOfXGKJAfSVHVZ_iyJP1iOagYP2mkTItPpOM.gHROp71325bidLK-skww8RQrafcdrwwyQ-gPRx7qtdE&dib_tag=se&keywords=laptop%2Basus%2Boled&nsdOptOutParam=true&qid=1753717631&s=computers&sr=1-2&th=1', { 
+    await page.goto('https://www.amazon.in/ASUS-Vivobook-Windows-Backlit-E1504FA-LK321WS/dp/B0BTWCYPGV?dib=eyJ2IjoiMSJ9.V17KBn8n9WX2PaKtK6AnfVy15iuOYpYt2GgsxDqM8nhMCn3HtERMdNtKtlzX8PidbxPRafcdrwwyQ-gPRx7qtdE&dib_tag=se&keywords=laptop%2Basus%2Boled&nsdOptOutParam=true&qid=1753717631&s=computers&sr=1-2&th=1', { 
       waitUntil: 'domcontentloaded' 
     });
     console.log('✅ Page navigation started');
 
-    // Wait specifically for the elements we need instead of arbitrary delay
-    console.log('⏳ Waiting for price and image elements...');
+    // Wait for all important selectors to load
+    await waitForAllSelectors(page);
     
-    try {
-      // Wait for either price or image elements (whichever loads first)
-      await Promise.race([
-        page.waitForSelector('span.a-price-whole', { timeout: 15000 }),
-        page.waitForSelector('img.a-dynamic-image', { timeout: 15000 })
-      ]);
-      console.log('✅ Target elements found');
-    } catch (err) {
-      console.log('⚠️ Elements not found within timeout, proceeding anyway...');
+    // Wait for product and landing images, expand specifications if needed
+    await waitForProductAndLandingImages(page);
+    
+    // Perform random mouse movements to simulate human behavior
+    await performRandomMouseMovements(page);
+    
+    // Wait 0.2 seconds before scraping
+    console.log('⏳ Waiting 0.2 seconds before scraping...');
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // First scraping attempt
+    console.log('📋 First attempt at scraping product details...');
+    let productDetails = await scrapeProductDetails(page);
+    
+    // Check if we found product details, if not try clicking the expander
+    if (productDetails.method1_sequential.length === 0 && productDetails.method2_paired.length === 0) {
+      console.log('🔍 No product details found, looking for additional expanders...');
+      
+      try {
+        // Look for any remaining expander links
+        const expanderSelector = 'a[data-action="a-expander-toggle"], .a-expander-header, [data-csa-c-element-id*="expander"]';
+        
+        const expanderFound = await page.$(expanderSelector);
+        if (expanderFound) {
+          console.log('✅ Found additional expander, clicking...');
+          
+          await page.click(expanderSelector);
+          
+          // Wait for the expanded content to load
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Perform additional mouse movements after expansion
+          await performRandomMouseMovements(page);
+          
+          // Wait 0.2 seconds before re-scraping
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+          // Try scraping again after expanding
+          console.log('📋 Re-attempting to scrape product details after expansion...');
+          productDetails = await scrapeProductDetails(page);
+        } else {
+          console.log('⚠️ No additional expanders found');
+        }
+        
+      } catch (expanderErr) {
+        console.log('⚠️ Could not find or click additional expanders:', expanderErr.message);
+      }
     }
-
-    // Scroll down to scan the whole page for all elements
-    console.log('📜 Scrolling through page to load all content...');
-    await page.evaluate(async () => {
-      await new Promise((resolve) => {
-        let totalHeight = 0;
-        const distance = 100;
-        const timer = setInterval(() => {
-          const scrollHeight = document.body.scrollHeight;
-          window.scrollBy(0, distance);
-          totalHeight += distance;
-
-          if(totalHeight >= scrollHeight){
-            clearInterval(timer);
-            resolve();
-          }
-        }, 100);
-      });
-    });
-    
-    // Wait a moment for any lazy-loaded content after scrolling
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    console.log('✅ Page scroll completed');
 
     // Scrape price elements
     const prices = await page.evaluate(() => {
@@ -113,59 +353,21 @@ const rotateTorIP = async (password = 'gunit') => {
       }));
     });
 
-    // Scrape product detail section entries and their corresponding values
-    const productDetails = await page.evaluate(() => {
-      const detailEntries = document.querySelectorAll('.a-color-secondary.a-size-base.prodDetSectionEntry');
-      const detailValues = document.querySelectorAll('.a-size-base.prodDetAttrValue');
-      
-      const details = [];
-      
-      // Method 1: If entries and values are in the same order/structure
-      for (let i = 0; i < Math.max(detailEntries.length, detailValues.length); i++) {
-        const entry = detailEntries[i];
-        const value = detailValues[i];
-        
-        details.push({
-          entry: entry ? {
-            text: entry.textContent.trim(),
-            innerHTML: entry.innerHTML.trim()
-          } : null,
-          value: value ? {
-            text: value.textContent.trim(),
-            innerHTML: value.innerHTML.trim()
-          } : null
-        });
+    // Scrape landing image specifically
+    const landingImage = await page.evaluate(() => {
+      const landingImg = document.querySelector('#landingImage');
+      if (landingImg) {
+        return {
+          src: landingImg.src,
+          alt: landingImg.alt,
+          width: landingImg.width,
+          height: landingImg.height,
+          id: landingImg.id,
+          className: landingImg.className,
+          rawHTML: landingImg.outerHTML
+        };
       }
-      
-      // Method 2: Alternative approach - find pairs within common parent containers
-      const detailRows = document.querySelectorAll('tr, .a-row, [class*="detail"]');
-      const pairedDetails = [];
-      
-      detailRows.forEach((row, index) => {
-        const entry = row.querySelector('.a-color-secondary.a-size-base.prodDetSectionEntry');
-        const value = row.querySelector('.a-size-base.prodDetAttrValue');
-        
-        if (entry || value) {
-          pairedDetails.push({
-            rowIndex: index,
-            entry: entry ? {
-              text: entry.textContent.trim(),
-              innerHTML: entry.innerHTML.trim()
-            } : null,
-            value: value ? {
-              text: value.textContent.trim(),
-              innerHTML: value.innerHTML.trim()
-            } : null
-          });
-        }
-      });
-      
-      return {
-        method1_sequential: details,
-        method2_paired: pairedDetails,
-        totalEntries: detailEntries.length,
-        totalValues: detailValues.length
-      };
+      return null;
     });
 
     // Print results
@@ -192,29 +394,46 @@ const rotateTorIP = async (password = 'gunit') => {
       console.log('No dynamic images found');
     }
 
+    console.log('\n🎯 LANDING IMAGE:');
+    if (landingImage) {
+      console.log(`Landing Image Details:`);
+      console.log(`  - ID: ${landingImage.id}`);
+      console.log(`  - Alt: ${landingImage.alt}`);
+      console.log(`  - Src: ${landingImage.src}`);
+      console.log(`  - Dimensions: ${landingImage.width}x${landingImage.height}`);
+      console.log(`  - Class: ${landingImage.className}`);
+      console.log(`  - Raw HTML: ${landingImage.rawHTML}`);
+    } else {
+      console.log('Landing image with ID "landingImage" not found');
+    }
+
     console.log('\n📋 PRODUCT DETAILS:');
     if (productDetails.method1_sequential.length > 0) {
-      console.log('\n--- Method 1: Sequential Matching ---');
+      console.log('\n--- Method 1: Sequential Matching (with Raw HTML) ---');
       productDetails.method1_sequential.forEach((detail, index) => {
         console.log(`\nDetail ${index + 1}:`);
         if (detail.entry) {
           console.log(`  Entry: ${detail.entry.text}`);
+          console.log(`  Entry Raw HTML: ${detail.entry.rawHTML}`);
         }
         if (detail.value) {
           console.log(`  Value: ${detail.value.text}`);
+          console.log(`  Value Raw HTML: ${detail.value.rawHTML}`);
         }
       });
     }
 
     if (productDetails.method2_paired.length > 0) {
-      console.log('\n--- Method 2: Parent-Child Matching ---');
+      console.log('\n--- Method 2: Parent-Child Matching (with Raw HTML) ---');
       productDetails.method2_paired.forEach((detail, index) => {
         console.log(`\nPaired Detail ${index + 1}:`);
         if (detail.entry) {
           console.log(`  Entry: ${detail.entry.text}`);
+          console.log(`  Entry Raw HTML: ${detail.entry.rawHTML}`);
         }
         if (detail.value) {
           console.log(`  Value: ${detail.value.text}`);
+          console.log(`  Value Raw HTML: ${detail.value.rawHTML}`);
         }
       });
     }
@@ -225,10 +444,6 @@ const rotateTorIP = async (password = 'gunit') => {
       console.log('No product detail entries or values found');
     }
 
-    // Keep browser open for viewing (optional - remove if not needed)
-    console.log('\n⏳ Keeping browser open for 10 seconds...');
-    await new Promise(resolve => setTimeout(resolve, 10000));
-
   } catch (err) {
     console.error('❌ Error:', err.message);
     
@@ -238,6 +453,6 @@ const rotateTorIP = async (password = 'gunit') => {
     }
   } finally {
     console.log('🔒 Closing browser...');
-    // await browser.close();
+    await browser.close();
   }
 })();
