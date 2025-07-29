@@ -1,0 +1,23 @@
+{
+  "name": "amazon-filter-controller",
+  "version": "1.0.0",
+  "description": "Express server with UI for controlling Amazon search filters via Puppeteer",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node amazon-search.js",
+    "dev": "nodemon amazon-search.js"
+  },
+  "keywords": ["amazon", "scraping", "puppeteer", "express", "filters"],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "telnet-client": "^1.4.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
